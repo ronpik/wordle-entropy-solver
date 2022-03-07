@@ -1,4 +1,4 @@
-from typing import NamedTuple, List
+from typing import NamedTuple, List, TypeVar, Generic
 
 import abc
 from enum import Enum
@@ -25,8 +25,23 @@ class GuessFeedback(NamedTuple):
         )
 
 
-class WordleEngine(abc.ABC):
-
+class WordleSessionEngine(abc.ABC):
     @abc.abstractmethod
     def guess(self, word: str) -> GuessFeedback:
         pass
+
+    @abc.abstractmethod
+    def is_solved(self) -> bool:
+        pass
+
+
+T = TypeVar("T", bound=WordleSessionEngine)
+
+
+class WordleEngine(Generic[T], abc.ABC):
+
+    @abc.abstractmethod
+    def new_session(self) -> T:
+        pass
+
+

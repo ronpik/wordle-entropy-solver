@@ -3,7 +3,7 @@ from typing import List, Iterable, NamedTuple
 
 import numpy as np
 
-from engine.wordle_engine import GuessFeedback, WordleEngine, WordLettersAnnotations
+from engine.wordle_engine import GuessFeedback, WordleEngine, WordLettersAnnotations, WordleSessionEngine, T
 
 
 class MaxTriesExceededError(Exception):
@@ -38,22 +38,11 @@ def create_feedback(word: str, target: str) -> 'GuessFeedback':
     return GuessFeedback(word, target, labels, False)
 
 
-class AutoWordleEngine(WordleEngine):
+class PredefinedWordleSession(WordleSessionEngine):
 
-    def __init__(self, possible_answers: List[str], allowed_guesses: List[str], max_tries: int = 6,
-                 random_seed: int = 1919):
-        self.possible_answers = possible_answers
-        self.allowed_guesses = allowed_guesses
+    def __init__(self, target: str, max_tries: int = 6):
+        self.__target: str = target
         self.max_tries = max_tries
-
-        self.rng = np.random.default_rng(seed=random_seed)
-        self.answers_indices = list(range(len(self.possible_answers)))
-        self.rng.shuffle(self.answers_indices)
-        self.__answers_indices = iter(self.answers_indices)
-
-        self.__next_target: int = None
-        self.__target: str = None
-
         self.__n_tries: int = 0
         self.guesses: List[str] = []
 
@@ -62,23 +51,6 @@ class AutoWordleEngine(WordleEngine):
     @property
     def target(self):
         return self.__target
-
-    def new_session(self):
-        self.__n_tries = 0
-        self.guesses = []
-        self.__target = self.possible_answers[self.__next_target]
-        self.__next_target: str = None
-        self.is_solved = False
-
-    def has_next_word(self):
-        try:
-            self.__next_target = self.__next_answer_word()
-            return True
-        except StopIteration:
-            return False
-
-    def __next_answer_word(self) -> str:
-        return next(self.__answers_indices)
 
     def has_more_guess(self) -> bool:
         return self.__n_tries < self.max_tries
@@ -98,4 +70,33 @@ class AutoWordleEngine(WordleEngine):
         return feedback
 
 
+class AutoWordleEngine(WordleEngine[PredefinedWordleSession]):
 
+    def __init__(self, possible_answers: List[str], allowed_guesses: List[str], max_tries: int = 6,
+                 random_seed: int = 1919):
+        self.possible_answers = possible_answers
+        self.allowed_guesses = allowed_guesses
+        self.max_tries = max_tries
+
+        self.rng = np.random.default_rng(seed=random_seed)
+        self.answers_indices = list(range(len(self.possible_answers)))
+        self.rng.shuffle(self.answers_indices)
+        self.__answers_indices = iter(self.answers_indices)
+
+        self.__next_target: int = None
+        self.__target: str = None
+
+    def new_session(self) -> PredefinedWordleSession:
+        target = self.possible_answers[self.__next_target]
+        self.__next_target: str = None
+        return PredefinedWordleSession(target, self.max_tries)
+
+    def has_next_word(self):
+        try:
+            self.__next_target = self.__next_answer_word()
+            return True
+        except StopIteration:
+            return False
+
+    def __next_answer_word(self) -> str:
+        return next(self.__answers_indices)

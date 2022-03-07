@@ -1,15 +1,11 @@
 import abc
 from typing import Iterator
 
-from engine import WordleEngine
+from engine.wordle_engine import WordleSessionEngine
 from solver.constraints import Constraints
 
 
 class WordleSolver(abc.ABC):
-
-    @abc.abstractmethod
-    def get_engine(self) -> WordleEngine:
-        pass
 
     @abc.abstractmethod
     def iter_first_guesses(self) -> Iterator[str]:
@@ -19,17 +15,13 @@ class WordleSolver(abc.ABC):
     def iter_guesses(self, current_guesses: Iterator[str], constraints: Constraints) -> Iterator[str]:
         pass
 
-    def solve(self) -> int:
-        engine = self.get_engine()
+    def solve(self, session: WordleSessionEngine) -> int:
         guesses_it = self.iter_first_guesses()
         n_guesses = 0
-        while True:
+        while not session.is_solved():
             n_guesses += 1
             next_word = next(guesses_it)
-            feedback = engine.guess(next_word)
-            if feedback.is_solved():
-                break
-
+            feedback = session.guess(next_word)
             constraints = Constraints.create(next_word, feedback.labels)
             guesses_it = self.iter_guesses(guesses_it, constraints)
 

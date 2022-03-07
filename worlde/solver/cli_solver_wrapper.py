@@ -50,9 +50,6 @@ class CliSolverWrapper(WordleSolver):
     def __init__(self, solver: WordleSolver):
         self.solver = solver
 
-    def get_engine(self) -> WordleEngine:
-        return self.solver.get_engine()
-
     def iter_first_guesses(self) -> Iterator[str]:
         guesses = self.solver.iter_first_guesses()
         return select_first_then_iter(guesses)
