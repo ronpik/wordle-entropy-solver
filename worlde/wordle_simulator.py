@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 from worlde.letters_stats import get_sorted_words
 from worlde.utils import load_wordslist, compute_word_weights_from_freqs, load_freqs
-from worlde.wordle_engine import WordleEngine
+from worlde.engine import AutoWordleEngine
 from worlde.wordle_solver import Constraints
 
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     possible_answers = load_wordslist(POSSIBLE_ANSWERS_FILEPATH)
     allowed_guesses = sorted(load_wordslist(ALLOWED_GUESSES_FILEPATH), key=freqs_map.get, reverse=True)
 
-    wordle_engine = WordleEngine(possible_answers, allowed_guesses)
+    wordle_engine = AutoWordleEngine(possible_answers, allowed_guesses)
 
     initial_sorted_allowed_guesses = get_sorted_words(allowed_guesses, weights=guesses_weights)
     # initial_sorted_possible_guesses = get_sorted_words(possible_answers)

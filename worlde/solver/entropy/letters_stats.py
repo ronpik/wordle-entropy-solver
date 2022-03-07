@@ -1,14 +1,9 @@
-import json
-import math
-from collections import Counter, defaultdict
+
+from collections import Counter
 from operator import itemgetter
 from typing import Iterable, NamedTuple, Dict, List, Tuple, Sequence
 
 import numpy as np
-from tqdm.auto import tqdm
-
-
-from worlde.utils import load_words, load_wordslist, load_freqs
 
 
 class LetterStats(NamedTuple):
@@ -121,39 +116,3 @@ def load_word_entropies(word_probs_path: str) -> List[Tuple[str, float]]:
         word_entropies.append((word, entropy))
 
     return sorted(word_entropies, key=itemgetter(1), reverse=True)
-
-
-
-if __name__ == "__main__":
-    POSSIBLE_ANSWERS_FILEPATH = "possible_words.txt"
-    ALLOWED_GUESSES_FILEPATH = "allowed_words.txt"
-    WORDS_GUESS_PROBS_PATH = "wordle_words_freqs_full.txt"
-    FREQS_PATH = "freq_map.json"
-
-    possible_answers = set(load_wordslist(POSSIBLE_ANSWERS_FILEPATH))
-    allowed_guesses = load_wordslist(ALLOWED_GUESSES_FILEPATH)
-    freqs = load_freqs(FREQS_PATH)
-
-    possible_ranks = []
-    for i, (word, _) in enumerate(freqs):
-        if word in possible_answers:
-            possible_ranks.append(i)
-
-    top_freqs = set(map(itemgetter(0), freqs[:len(possible_answers)]))
-
-    overlap = top_freqs.intersection(possible_answers)
-    outer_possible = possible_answers - overlap
-    print(len(overlap, outer_possible))
-
-
-    print(possible_ranks)
-
-
-    all_allowed_words = load_wordslist(ALLOWED_GUESSES_FILEPATH)
-    sorted_words = get_sorted_words(all_allowed_words)
-    freqs = load_freqs(FREQS_PATH)
-    word_entropies = load_word_entropies(WORDS_GUESS_PROBS_PATH)
-    print(freqs[:10])
-    print(sorted_words[:10])
-    print(word_entropies[:10])
-

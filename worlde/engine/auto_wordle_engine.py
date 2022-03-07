@@ -3,9 +3,7 @@ from typing import List, Iterable, NamedTuple
 
 import numpy as np
 
-from worlde.letters_stats import get_sorted_words
-from worlde.utils import load_wordslist, WordLettersAnnotations
-from worlde.wordle_solver import Constraints
+from engine.wordle_engine import GuessFeedback, WordleEngine, WordLettersAnnotations
 
 
 class MaxTriesExceededError(Exception):
@@ -13,50 +11,34 @@ class MaxTriesExceededError(Exception):
         super(self, MaxTriesExceededError).__init__("You've exceeded the maximal number of tries")
 
 
-class GuessFeedback(NamedTuple):
-    word: str
-    target: str
-    labels: List[WordLettersAnnotations]
-    is_solved: bool
+def create_feedback(word: str, target: str) -> 'GuessFeedback':
+    if word == target:
+        return GuessFeedback.create_solved_feedback(target)
 
-    @staticmethod
-    def create_solved_feedback(target: str):
-        return GuessFeedback(
-            target,
-            target,
-            [WordLettersAnnotations.EXACT_POS for _ in range(len(target))],
-            True
-        )
+    letters_counts = Counter(target)
+    labels: List[WordLettersAnnotations] = [None for _ in range(len(target))]
 
-    @staticmethod
-    def create_feedback(word: str, target: str) -> 'GuessFeedback':
-        if word == target:
-            return GuessFeedback.create_solved_feedback(target)
+    for index, letter in enumerate(word):
+        if letter == target[index]:
+            labels[index] = WordLettersAnnotations.EXACT_POS
+            letters_counts[letter] -= 1
 
-        letters_counts = Counter(target)
-        labels: List[WordLettersAnnotations] = [None for _ in range(len(target))]
+    for index, letter in enumerate(word):
+        if labels[index] is not None:
+            continue
 
-        for index, letter in enumerate(word):
-            if letter == target[index]:
-                labels[index] = WordLettersAnnotations.EXACT_POS
-                letters_counts[letter] -= 1
+        if letters_counts[letter] > 0:
+            labels[index] = WordLettersAnnotations.FALSE_POS
+            letters_counts[letter] -= 1
 
-        for index, letter in enumerate(word):
-            if labels[index] is not None:
-                continue
+    for i in range(len(labels)):
+        if labels[i] is None:
+            labels[i] = WordLettersAnnotations.FALSE_LETTER
 
-            if letters_counts[letter] > 0:
-                labels[index] = WordLettersAnnotations.FALSE_POS
-                letters_counts[letter] -= 1
-
-        for i in range(len(labels)):
-            if labels[i] is None:
-                labels[i] = WordLettersAnnotations.FALSE_LETTER
-
-        return GuessFeedback(word, target, labels, False)
+    return GuessFeedback(word, target, labels, False)
 
 
-class WordleEngine:
+class AutoWordleEngine(WordleEngine):
 
     def __init__(self, possible_answers: List[str], allowed_guesses: List[str], max_tries: int = 6,
                  random_seed: int = 1919):
@@ -75,6 +57,8 @@ class WordleEngine:
         self.__n_tries: int = 0
         self.guesses: List[str] = []
 
+        self.__solved = False
+
     @property
     def target(self):
         return self.__target
@@ -84,6 +68,7 @@ class WordleEngine:
         self.guesses = []
         self.__target = self.possible_answers[self.__next_target]
         self.__next_target: str = None
+        self.is_solved = False
 
     def has_next_word(self):
         try:
@@ -98,8 +83,19 @@ class WordleEngine:
     def has_more_guess(self) -> bool:
         return self.__n_tries < self.max_tries
 
+    def is_solved(self):
+        return self.__solved
+
     def guess(self, word: str) -> GuessFeedback:
         assert self.__n_tries < self.max_tries
         self.__n_tries += 1
         self.guesses.append(word)
-        return GuessFeedback.create_feedback(word, self.__target)
+        feedback = create_feedback(word, self.__target)
+
+        if (not self.__solved) and feedback.is_solved:
+            self.__solved = True
+
+        return feedback
+
+
+

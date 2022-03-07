@@ -53,8 +53,3 @@ def compute_word_weights_from_freqs1(words_freqs: List[Tuple[str, float]]) -> Di
 
     return {word: (compute_weight(freq) if freq > 0 else 0) for word, freq in words_freqs}
 
-
-class WordLettersAnnotations(Enum):
-    EXACT_POS = 2
-    FALSE_POS = 1
-    FALSE_LETTER = 0
