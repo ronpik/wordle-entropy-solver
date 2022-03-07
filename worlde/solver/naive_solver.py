@@ -8,13 +8,9 @@ from solver.wordle_solver import WordleSolver
 
 class NaiveSolver(WordleSolver):
 
-    def __init__(self, engine: WordleEngine, allowed_words: List[str], seed: int = 1919):
-        self.engine = engine
+    def __init__(self, allowed_words: List[str], seed: int = 1919):
         self.allowed_words = allowed_words
         self.random = random.Random(seed)
-
-    def get_engine(self) -> WordleEngine:
-        return self.engine
 
     def iter_first_guesses(self) -> Iterator[str]:
         indices = list(range(len(self.allowed_words)))

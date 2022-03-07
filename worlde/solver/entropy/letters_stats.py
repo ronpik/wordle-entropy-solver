@@ -91,7 +91,7 @@ def compute_word_entropy_sum(word: str, letters_stats: Dict[str, LetterStats]) -
     return entropy_sum
 
 
-def get_sorted_words(allowed_words: List[str], target_words: List[str] = None, weights: Dict[str, float] = None) -> List[Tuple[str, float]]:
+def sort_by_info_gain(allowed_words: List[str], target_words: List[str] = None, weights: Dict[str, float] = None) -> List[Tuple[str, float]]:
     weights = weights or {}
     target_words = target_words or allowed_words
     letters_stats = compute_letters_stats(target_words, weights)

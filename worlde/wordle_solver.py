@@ -7,7 +7,7 @@ from operator import itemgetter
 from typing import Sequence, Callable, List, Tuple, NamedTuple, Iterable, Iterator, Any, TypeVar, Type
 
 from solver.constraints import WordLettersAnnotations, Constraints
-from solver.entropy.letters_stats import get_sorted_words
+from solver.entropy.letters_stats import sort_by_info_gain
 from utils import load_wordslist
 
 T = TypeVar('T')
@@ -17,7 +17,7 @@ T = TypeVar('T')
 
 
 def load_words(path: str) -> List[str]:
-        return get_sorted_words(load_wordslist(path))
+        return sort_by_info_gain(load_wordslist(path))
 
 
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
         constraints = Constraints.create(word, annotations)
         remained_words = list(constraints.filter_words(remained_words))
-        sorted_allowed_guesses = get_sorted_words(remained_words)
+        sorted_allowed_guesses = sort_by_info_gain(remained_words)
         # remained_words = get_sorted_words(list(constraints.filter_words(map(itemgetter(0), remained_words))))
         print(f"{len(remained_words)} words remained")
         print(remained_words[:10])
