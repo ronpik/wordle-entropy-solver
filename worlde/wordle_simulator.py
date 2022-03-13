@@ -18,13 +18,6 @@ def result_to_json(target: str, session_guesses: List[Tuple[str, int, List[str]]
     }
 
 
-def has_information_gain(remained_words: List[str], guesses_entropies: List[Tuple[str, float]]) -> bool:
-    remained_words_set = set(remained_words)
-    min_entropy = min(map(itemgetter(1), filter(lambda t: t[0] in remained_words_set, guesses_entropies)))
-    max_entropy = max(map(itemgetter(1), filter(lambda t: t[0] in remained_words_set, guesses_entropies)))
-    return max_entropy > min_entropy + 0.5
-
-
 if __name__ == "__main__":
     POSSIBLE_ANSWERS_FILEPATH = "possible_words.txt"
     ALLOWED_GUESSES_FILEPATH = "allowed_words.txt"
