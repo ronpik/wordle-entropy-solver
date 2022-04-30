@@ -1,7 +1,6 @@
 import random
 from typing import List, Iterator
 
-from engine import WordleEngine
 from solver.constraints import Constraints
 from solver.wordle_solver import WordleSolver
 

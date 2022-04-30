@@ -76,11 +76,15 @@ class Constraints(NamedTuple):
 
         must_not_exist = self.must_not_exist + new_constraints.must_not_exist
 
-        new_must_exists_letter_set = set(map(itemgetter(1), new_constraints.must_exist))
+        new_must_exists_letter_set = set(map(itemgetter(0), new_constraints.must_exist))
         relevant_current_must_exist = [(letter, min_count) for (letter, min_count) in self.must_exist
                                        if letter not in new_must_exists_letter_set]
 
         must_exist = relevant_current_must_exist + new_constraints.must_exist
+
+        current_exact_positions_letter_set = set(map(itemgetter(0), self.exact_positions))
+        exact_positions = self.exact_positions + [(letter, pos) for letter, pos in new_constraints.exact_positions
+                                                  if letter not in current_exact_positions_letter_set]
 
         false_positions = {letter: list(positions) for letter, positions in self.false_positions}
         for (letter, positions) in new_constraints.false_positions:
@@ -89,7 +93,7 @@ class Constraints(NamedTuple):
         return Constraints(
             must_exist,
             must_not_exist,
-            new_constraints.exact_positions,
+            exact_positions,
             list(false_positions.items())
         )
 

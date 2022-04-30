@@ -60,15 +60,15 @@ def compute_match_log_prob(word: str, letter_stats: Dict[str, LetterStats]) -> f
 def compute_entropy(*probabilities: float) -> float:
     entropy = 0
     for p in probabilities:
-        if (p == 0): continue
-        if (p < 0): print(p)
+        if p == 0: continue
+        if p < 0: print(p)
         entropy += p * np.log2(p)
 
     return -entropy
 
 
 def compute_word_letter_entropy(letter: str, position: int, repeat: int, letters_stats: Dict[str, LetterStats]) -> float:
-    stats =  letters_stats.get(letter)
+    stats = letters_stats.get(letter)
     if stats is None:
         return 0
 
@@ -76,7 +76,7 @@ def compute_word_letter_entropy(letter: str, position: int, repeat: int, letters
     position_prob = position_probs[position]
     repeat_prob = repeat_probs[repeat]
     exact_prob = repeat_probs[0] * position_prob
-    other_pos_prob = repeat_prob - repeat_prob * position_prob
+    other_pos_prob = repeat_prob - (repeat_prob * position_prob)
     not_exist_prob = 1 - repeat_probs[repeat]
     return compute_entropy(exact_prob, other_pos_prob, not_exist_prob)
 

@@ -1,5 +1,5 @@
 from collections import Counter
-from typing import List, Iterable, NamedTuple
+from typing import List, Iterable, NamedTuple, Union, Optional
 
 import numpy as np
 
@@ -7,8 +7,8 @@ from engine.wordle_engine import GuessFeedback, WordleEngine, WordLettersAnnotat
 
 
 class MaxTriesExceededError(Exception):
-    def __init__(self):
-        super(self, MaxTriesExceededError).__init__("You've exceeded the maximal number of tries")
+    def __init__(self, max_tries: int):
+        super().__init__(f"You've exceeded the maximal number of tries: {max_tries}")
 
 
 def create_feedback(word: str, target: str) -> 'GuessFeedback':
@@ -35,7 +35,7 @@ def create_feedback(word: str, target: str) -> 'GuessFeedback':
         if labels[i] is None:
             labels[i] = WordLettersAnnotations.FALSE_LETTER
 
-    return GuessFeedback(word, target, labels, False)
+    return GuessFeedback(word, labels)
 
 
 class PredefinedWordleSession(WordleSessionEngine):
@@ -47,25 +47,46 @@ class PredefinedWordleSession(WordleSessionEngine):
         self.guesses: List[str] = []
 
         self.__solved = False
+        self.__failed = False
 
     @property
-    def target(self):
+    def target(self) -> Optional[str]:
+        if not self.is_closed():
+            return None
+
         return self.__target
+
+    def giveup_and_get_target(self) -> str:
+        self.give_up()
+        return self.target
 
     def has_more_guess(self) -> bool:
         return self.__n_tries < self.max_tries
 
-    def is_solved(self):
+    def is_solved(self) -> bool:
         return self.__solved
 
+    def is_failed(self) -> bool:
+        return self.__failed
+
+    def give_up(self) -> str:
+        self.__failed = True
+        return self.target
+
+    def is_closed(self) -> bool:
+        return self.is_solved() or self.is_failed()
+
     def guess(self, word: str) -> GuessFeedback:
-        assert self.__n_tries < self.max_tries
+        if self.__n_tries >= self.max_tries:
+            raise MaxTriesExceededError(self.max_tries)
+
         self.__n_tries += 1
         self.guesses.append(word)
         feedback = create_feedback(word, self.__target)
-
-        if (not self.__solved) and feedback.is_solved:
+        if (not self.__solved) and feedback.is_solved():
             self.__solved = True
+        elif self.__n_tries == self.max_tries:
+            self.__failed = True
 
         return feedback
 

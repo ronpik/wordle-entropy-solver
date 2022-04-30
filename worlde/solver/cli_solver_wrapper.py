@@ -1,5 +1,6 @@
 from typing import Iterator
 
+from itertools import chain
 from engine import WordleEngine
 from solver.constraints import Constraints
 from solver.wordle_solver import WordleSolver
@@ -25,24 +26,27 @@ def get_user_selection(next_word: str, default_selection: str = None) -> str:
 
 
 def select_first_then_iter(guesses: Iterator[str]) -> Iterator[str]:
+    skipped_guesses = []
     while True:
         next_word = next(guesses)
         selection = get_user_selection(next_word)
 
         if selection == 'n':
+            skipped_guesses.append(next_word)
             continue
 
         if selection == 'c':
             yield next_word
 
         elif selection == 'i':
+            skipped_guesses.append(next_word)
             print("Insert the word you've used:")
             word = input()
             yield word
 
         break
 
-    yield from guesses
+    yield from chain.from_iterable([guesses, skipped_guesses])
 
 
 class CliSolverWrapper(WordleSolver):
@@ -54,7 +58,6 @@ class CliSolverWrapper(WordleSolver):
         guesses = self.solver.iter_first_guesses()
         return select_first_then_iter(guesses)
 
-    def iter_guesses(self, current_guesses: Iterator[str], constraints: Constraints) -> Iterator[str]:
-        guesses = self.solver.iter_guesses(current_guesses, constraints)
+    def iter_guesses(self, guesses_iter: Iterator[str], constraints: Constraints) -> Iterator[str]:
+        guesses = self.solver.iter_guesses(guesses_iter, constraints)
         return select_first_then_iter(guesses)
-

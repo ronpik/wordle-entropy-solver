@@ -12,27 +12,18 @@ class WordleSolver(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def iter_guesses(self, current_guesses: Iterator[str], constraints: Constraints) -> Iterator[str]:
+    def iter_guesses(self, guesses_iter: Iterator[str], constraints: Constraints) -> Iterator[str]:
         pass
 
     def solve(self, session: WordleSessionEngine) -> int:
         guesses_it = self.iter_first_guesses()
         n_guesses = 0
+        constraints = Constraints.create_empty()
         while not session.is_solved():
             n_guesses += 1
             next_word = next(guesses_it)
             feedback = session.guess(next_word)
-            constraints = Constraints.create(next_word, feedback.labels)
+            constraints = constraints.update(next_word, feedback.labels)
             guesses_it = self.iter_guesses(guesses_it, constraints)
 
         return n_guesses
-
-
-# speak with Avi
-# speak with Ronen
-# speak with Benny
-
-
-
-
-
